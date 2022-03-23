@@ -2,6 +2,8 @@
 const domSelectors = {
   todolistHeader: ".todolist__header",
   todolistContent: ".todolist__content",
+  todoButton: ".input-bar__submit",
+  barInput: ".input-bar__input",
 };
 
 // Data
@@ -34,6 +36,28 @@ let todos = [
   },
 ];
 
+function addTodo() {
+  document
+    .querySelector(domSelectors.todoButton)
+    .addEventListener("click", inputValueExtract);
+}
+function inputValueExtract() {
+  const inputValue = document.querySelector(domSelectors.barInput).value;
+  let obj = {
+    userId: 1,
+    id: todos.length + 1,
+    title: inputValue,
+    completed: false,
+  };
+  todos.push(obj);
+  renderTodoList(todos);
+
+  inputCleaner(inputValue);
+}
+
+function inputCleaner(input) {
+  input.value = "";
+}
 function deleteTodo(id) {
   todos = todos.filter((todo) => todo.id !== id);
 }
@@ -99,3 +123,4 @@ renderTodoList(todos);
 
 // init Event
 setUpEvent();
+addTodo();
