@@ -1,70 +1,101 @@
-function main() {
-  const input = document.querySelector("input");
-  const btn = document.querySelector("#add-btn");
-  const ul = document.querySelector("ul");
+//Const
+const domSelectors = {
+  todolistHeader: ".todolist__header",
+  todolistContent: ".todolist__content",
+};
 
-  const liCreator = () => {
-    let li = document.createElement("li");
-    idCreator(li);
-    doneBtnCreator(li);
-    li.appendChild(document.createTextNode(input.value));
-    deleteBtnCreator(li);
+// Data
+const title = "My To Do List";
+const submitText = "Add";
+let todos = [
+  {
+    userId: 1,
+    id: 1,
+    title: "Hit the gym",
+    completed: false,
+  },
+  {
+    userId: 1,
+    id: 2,
+    title: "sdfasf aut autem",
+    completed: false,
+  },
+  {
+    userId: 1,
+    id: 3,
+    title: "sdfsafsadf aut autem",
+    completed: true,
+  },
+  {
+    userId: 1,
+    id: 4,
+    title: "dfdsfsafasfs aut autem",
+    completed: false,
+  },
+];
 
-    ul.appendChild(li);
-    input.value = "";
-    deleteItem();
-    doneItem();
-  };
-
-  const idCreator = (element) => {
-    let childNo = ul.children.length + 1;
-    element.setAttribute("id", `li-${childNo}`);
-  };
-
-  const deleteBtnCreator = (element) => {
-    let bt = document.createElement("button");
-    bt.innerText = "Delete";
-    element.appendChild(bt);
-  };
-  const doneBtnCreator = (element) => {
-    let bt = document.createElement("button");
-    bt.innerText = "Done";
-
-    element.appendChild(bt);
-  };
-
-  btn.addEventListener("click", liCreator);
-
-  const deleteItem = () => {
-    const lis = [...document.querySelectorAll("li")];
-    lis.forEach((li) =>
-      li.lastChild.addEventListener("click", () => {
-        li.remove();
-      })
-    );
-  };
-  const doneItem = () => {
-    const lis = [...document.querySelectorAll("li")];
-    lis.forEach((li) =>
-      li.firstChild.addEventListener("click", () => {
-        li.firstChild.setAttribute("id", li.attributes[0].value.slice(3));
-        li.classList.add("done");
-      })
-    );
-    tryo();
-  };
-  const tryo = () => {
-    const lis = [...document.querySelectorAll("li")];
-    lis.forEach((li) => {
-      li.addEventListener("click", () => {
-        if (
-          li.firstChild.attributes[0].value === li.attributes[0].value.slice(3)
-        ) {
-          li.firstChild.innerText = "Undone";
-          console.log(li.firstChild);
-        }
-      });
-    });
-  };
+function deleteTodo(id) {
+  todos = todos.filter((todo) => todo.id !== id);
 }
-main();
+
+function generateHeaderContent(title, submitText) {
+  return `<h1 class="todolist__header__title">${title}</h1>
+  <div class="input-bar">
+      <input class="input-bar__input"/>
+      <button class="input-bar__submit">${submitText}</button>
+  </div>`;
+}
+
+function generateTodoItem(todo) {
+  return `<li id="todo-${todo.id}" class="todolist__content__row">
+  <span class="todolist__content__item">${todo.title}</span>
+  <button  class="todolist__content__action" >X</button>
+</li>`;
+}
+
+function generateTodoList(todos) {
+  return todos.map((todo) => generateTodoItem(todo)).join("");
+}
+
+function renderHeader(title, submitText) {
+  const ele = document.querySelector(domSelectors.todolistHeader);
+  const tmp = generateHeaderContent(title, submitText);
+  render(ele, tmp);
+}
+
+function renderTodoList(todos) {
+  const tmp = generateTodoList(todos);
+  const ele = document.querySelector(domSelectors.todolistContent);
+  render(ele, tmp);
+}
+
+function render(element, template) {
+  element.innerHTML = template;
+}
+
+function setUpEvent() {
+  document
+    .querySelector(domSelectors.todolistContent)
+    .addEventListener("click", (e) => {
+      if (isDeleteButton(e.target)) {
+        const id = getTodoIdFromBtn(e.target);
+        deleteTodo(id);
+        renderTodoList(todos);
+      }
+    });
+}
+
+function getTodoIdFromBtn(btnElement) {
+  return +btnElement.parentElement.id.substring(5);
+}
+
+function isDeleteButton(element) {
+  return element.classList.contains("todolist__content__action");
+}
+
+// init
+renderHeader(title, submitText);
+renderTodoList(todos);
+
+// init Event
+setUpEvent();
