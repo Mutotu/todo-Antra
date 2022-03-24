@@ -60,5 +60,5 @@ button {
   padding: 0px 20px;
 }
 .todolist__content .todolist__content__row:nth-child(odd) {
-  background: #f9f9f9;
+  background: #e4e1e1;
 }

@@ -19,19 +19,19 @@ let todos = [
   {
     userId: 1,
     id: 2,
-    title: "sdfasf aut autem",
+    title: "code JS",
     completed: false,
   },
   {
     userId: 1,
     id: 3,
-    title: "sdfsafsadf aut autem",
+    title: "Cook comida",
     completed: true,
   },
   {
     userId: 1,
     id: 4,
-    title: "dfdsfsafasfs aut autem",
+    title: "Read a book",
     completed: false,
   },
 ];
@@ -42,11 +42,12 @@ function addTodo() {
     .addEventListener("click", inputValueExtract);
 }
 function inputValueExtract() {
-  const inputValue = document.querySelector(domSelectors.barInput).value;
+  const inputValue = document.querySelector(domSelectors.barInput);
+  if (inputValue.value.length < 1) return;
   let obj = {
     userId: 1,
     id: todos.length + 1,
-    title: inputValue,
+    title: inputValue.value,
     completed: false,
   };
   todos.push(obj);
