@@ -1,66 +1,72 @@
-//Const
-const domSelectors = {
+// CONST
+const domSeletors = {
   todolistHeader: ".todolist__header",
   todolistContent: ".todolist__content",
-  todoButton: ".input-bar__submit",
-  barInput: ".input-bar__input",
+  inputBarSubmit: ".input-bar__submit",
+  inputBarInput: ".input-bar__input",
 };
 
 // Data
 const title = "My To Do List";
 const submitText = "Add";
-let todos = [
-  {
-    userId: 1,
-    id: 1,
-    title: "Hit the gym",
-    completed: false,
-  },
-  {
-    userId: 1,
-    id: 2,
-    title: "code JS",
-    completed: false,
-  },
-  {
-    userId: 1,
-    id: 3,
-    title: "Cook comida",
-    completed: true,
-  },
-  {
-    userId: 1,
-    id: 4,
-    title: "Read a book",
-    completed: false,
-  },
-];
+let todos = [];
+// let todos = [{
+//     "userId": 1,
+//     "id": 1,
+//     "title": "Hit the gym",
+//     "completed": false
+// }, {
+//     "userId": 1,
+//     "id": 2,
+//     "title": "sdfasf aut autem",
+//     "completed": true
+// }, {
+//     "userId": 1,
+//     "id": 3,
+//     "title": "sdfsafsadf aut autem",
+//     "completed": true
+// }, {
+//     "userId": 1,
+//     "id": 4,
+//     "title": "dfdsfsafasfs aut autem",
+//     "completed": false
+// }]
 
-function addTodo() {
-  document
-    .querySelector(domSelectors.todoButton)
-    .addEventListener("click", inputValueExtract);
-}
-function inputValueExtract() {
-  const inputValue = document.querySelector(domSelectors.barInput);
-  if (inputValue.value.length < 1) return;
-  let obj = {
-    userId: 1,
-    id: todos.length + 1,
-    title: inputValue.value,
-    completed: false,
-  };
-  todos.push(obj);
-  renderTodoList(todos);
+// let obj = {
+//     name: 'patrick'
+// };
+// // mutable
+// obj.name = 'sam';
 
-  inputCleaner(inputValue);
+// // imutable
+// obj = {
+//     name: 'sam'
+// }
+
+function addNewTodo(newTodo) {
+  todos = [
+    ...todos,
+    {
+      ...newTodo,
+    },
+  ];
 }
 
-function inputCleaner(input) {
-  input.value = "";
-}
-function deleteTodo(id) {
+function deletTodo(id) {
+  console.log(todos, id);
   todos = todos.filter((todo) => todo.id !== id);
+}
+
+function toggleCompleteTodo(id) {
+  todos = todos.map((todo) => {
+    if (todo.id === id) {
+      return {
+        ...todo,
+        completed: !todo.completed,
+      };
+    }
+    return todo;
+  });
 }
 
 function generateHeaderContent(title, submitText) {
@@ -72,7 +78,9 @@ function generateHeaderContent(title, submitText) {
 }
 
 function generateTodoItem(todo) {
-  return `<li id="todo-${todo.id}" class="todolist__content__row">
+  return `<li id="todo-${todo.id}" class="todolist__content__row ${
+    todo.completed ? "checked" : ""
+  }">
   <span class="todolist__content__item">${todo.title}</span>
   <button  class="todolist__content__action" >X</button>
 </li>`;
@@ -83,14 +91,14 @@ function generateTodoList(todos) {
 }
 
 function renderHeader(title, submitText) {
-  const ele = document.querySelector(domSelectors.todolistHeader);
+  const ele = document.querySelector(domSeletors.todolistHeader);
   const tmp = generateHeaderContent(title, submitText);
   render(ele, tmp);
 }
 
 function renderTodoList(todos) {
   const tmp = generateTodoList(todos);
-  const ele = document.querySelector(domSelectors.todolistContent);
+  const ele = document.querySelector(domSeletors.todolistContent);
   render(ele, tmp);
 }
 
@@ -100,28 +108,96 @@ function render(element, template) {
 
 function setUpEvent() {
   document
-    .querySelector(domSelectors.todolistContent)
+    .querySelector(domSeletors.inputBarSubmit)
+    .addEventListener("click", (e) => {
+      const inputEle = document.querySelector(domSeletors.inputBarInput);
+      const newTitle = inputEle.value;
+      inputEle.value = "";
+      const newTodo = {
+        title: newTitle,
+        completed: false,
+        userId: 1,
+      };
+
+      addTodo(newTodo).then((data) => {
+        addNewTodo(data);
+        renderTodoList(todos);
+      });
+    });
+
+  document
+    .querySelector(domSeletors.todolistContent)
     .addEventListener("click", (e) => {
       if (isDeleteButton(e.target)) {
-        const id = getTodoIdFromBtn(e.target);
-        deleteTodo(id);
+        const id = getTodoIdFromParent(e.target);
+        deleteTodo(id).then((_) => {
+          console.log("delete");
+          deletTodo(id);
+          renderTodoList(todos);
+        });
+      } else if (isContentRowOrItem(e.target)) {
+        let id = getTodoIdFromElement(e.target)
+          ? getTodoIdFromElement(e.target)
+          : getTodoIdFromParent(e.target);
+        toggleCompleteTodo(id);
         renderTodoList(todos);
       }
     });
 }
 
-function getTodoIdFromBtn(btnElement) {
-  return +btnElement.parentElement.id.substring(5);
+function getTodoIdFromElement(element) {
+  if (element?.id?.startsWith("todo")) {
+    return +element.id.substring(5);
+  }
+  console.warn("element Does not has an id");
+  return null;
+}
+
+function getTodoIdFromParent(childElement) {
+  return getTodoIdFromElement(childElement.parentElement);
 }
 
 function isDeleteButton(element) {
   return element.classList.contains("todolist__content__action");
 }
 
+function isContentRowOrItem(element) {
+  return (
+    element.classList.contains("todolist__content__row") ||
+    element.classList.contains("todolist__content__item")
+  );
+}
+
+/// APIS
+
+function getTodos() {
+  return fetch("https://jsonplaceholder.typicode.com/todos").then((response) =>
+    response.json()
+  );
+}
+
+function deleteTodo(id) {
+  return fetch(`https://jsonplaceholder.typicode.com/todos/${id}`, {
+    method: "DELETE",
+  });
+}
+
+function addTodo(newTodo) {
+  return fetch("https://jsonplaceholder.typicode.com/todos", {
+    method: "POST",
+    body: JSON.stringify(newTodo),
+    headers: {
+      "Content-type": "application/json; charset=UTF-8",
+    },
+  }).then((response) => response.json());
+}
+
 // init
 renderHeader(title, submitText);
-renderTodoList(todos);
+getTodos().then((todosData) => {
+  todos = todosData;
+  renderTodoList(todos);
+});
 
 // init Event
 setUpEvent();
-addTodo();
